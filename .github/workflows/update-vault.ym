@@ -1,0 +1,22 @@
+name: Update Vault
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 毎日0時（UTC）に実行
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  update-vault:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Add entry to vault.jsonl
+        run: |
+          echo "{\"date\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\", \"message\": \"Hello from GitHub Actions\"}" >> vault/vault.jsonl
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add vault/vault.jsonl
+          git commit -m "Update vault.jsonl"
+          git push
