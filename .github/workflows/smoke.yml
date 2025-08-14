@@ -1,0 +1,22 @@
+name: smoke
+on:
+  workflow_dispatch: {}   # 手動実行ボタンを出す
+permissions:
+  contents: write
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Append heartbeat
+        run: |
+          mkdir -p vault
+          printf "ok %s\n" "$(date -u +%FT%TZ)" >> vault/heartbeat.txt
+      - name: Commit & push
+        run: |
+          git config user.name  "wiz-agent"
+          git config user.email "wiz-agent@users.noreply.github.com"
+          git add vault/heartbeat.txt
+          git commit -m "smoke: heartbeat" || echo "no changes"
+          git push
