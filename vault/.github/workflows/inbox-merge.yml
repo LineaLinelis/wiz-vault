@@ -1,0 +1,51 @@
+name: inbox-merge
+on:
+  push:
+    paths:
+      - "inbox/**"
+  workflow_dispatch: {}
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure vault
+        run: |
+          mkdir -p vault history
+          touch vault/vault.jsonl
+
+      - name: Collect new inbox files
+        id: collect
+        run: |
+          # 直近のpushで変更のあった inbox/ 配下ファイルを列挙
+          files=$(git diff --name-only HEAD^ HEAD | grep '^inbox/' || true)
+          if [ -z "$files" ]; then
+            echo "files=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "files=$files" >> $GITHUB_OUTPUT
+
+      - name: Append to vault.jsonl (1段落=1行)
+        if: steps.collect.outputs.files != ''
+        run: |
+          ts=$(date -u +%FT%TZ)
+          for f in ${{ steps.collect.outputs.files }}; do
+            [ -f "$f" ] || continue
+            # 空行を除き、各行をJSONL化して追記
+            while IFS= read -r line || [ -n "$line" ]; do
+              [ -z "$line" ] && continue
+              esc=$(printf "%s" "$line" | python -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
+            done < /dev/null
+          done
+
+          # 上の python ワンライナーだと端末差が出るので、簡易版に変更
+          # 1段落毎にJSONエスケープして追記
+          for f in ${{ steps.collect.outputs.files }}; do
+            sess=$(basename "$f")
+            while IFS= read -r para || [ -n "$para" ]; do
+              [ -z "$para" ] && continue
+              safe=$(printf "%s" "$para" | python - <<'PY'
