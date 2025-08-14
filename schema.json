@@ -1,0 +1,15 @@
+{
+  "entry": {
+    "id": "string (unique)",
+    "timestamp": "ISO 8601",
+    "author": "wiz|user|system",
+    "type": "memory|insight|policy|event",
+    "title": "short title",
+    "summary": "1-3 sentences",
+    "content": "full text (optional)",
+    "relations": {"person": ["Rinea"], "topic": []},
+    "tags": ["RELATION:Rinea","PRIORITY:HIGH","STABILITY:LONG"],
+    "links": {"reinterpretation_of": [], "supersedes": []},
+    "security": {"redactable": true, "shareable": "with-rinea"}
+  }
+}
